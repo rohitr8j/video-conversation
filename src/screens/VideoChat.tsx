@@ -25,7 +25,8 @@ import {
   VideoOffIcon, 
   PhoneIcon,
   MessageCircle,
-  Settings
+  Settings,
+  AlertTriangle
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -90,8 +91,20 @@ export const VideoChat = () => {
         
       } catch (err) {
         console.error("Failed to create conversation:", err);
-        if (err instanceof Error && err.message.includes('402')) {
-          setError("Invalid or expired API token. Please check your Tavus API token in Settings and ensure it has sufficient credits.");
+        if (err instanceof Error) {
+          if (err.message.includes('402')) {
+            setError("Your Tavus API token is invalid, expired, or has insufficient credits. Please check your API token in Settings and ensure your Tavus account has available credits.");
+          } else if (err.message.includes('401')) {
+            setError("Authentication failed. Please verify your Tavus API token in Settings.");
+          } else if (err.message.includes('403')) {
+            setError("Access denied. Please check your API token permissions in the Tavus platform.");
+          } else if (err.message.includes('429')) {
+            setError("Rate limit exceeded. Please wait a moment and try again.");
+          } else if (err.message.includes('500')) {
+            setError("Tavus service is temporarily unavailable. Please try again in a few minutes.");
+          } else {
+            setError(`Failed to start session: ${err.message}`);
+          }
         } else {
           setError("Failed to start session. Please try again.");
         }
@@ -163,24 +176,56 @@ export const VideoChat = () => {
     setScreenState({ currentScreen: "settings" });
   };
 
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    // Re-trigger the initialization by updating the effect dependencies
+    window.location.reload();
+  };
+
   if (error) {
+    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("invalid") || error.includes("expired") || error.includes("credits");
+    
     return (
       <div className="max-w-2xl mx-auto text-center space-y-6">
         <Card className="glass border-2 border-red-200 p-8">
-          <div className="text-4xl mb-4">⚠️</div>
+          <div className="text-4xl mb-4">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
+          </div>
           <h2 className="text-2xl font-bold text-red-600 mb-4">Session Error</h2>
-          <p className="text-muted-foreground mb-6">{error}</p>
+          <p className="text-muted-foreground mb-6 leading-relaxed">{error}</p>
+          
+          {isTokenError && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+              <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                <p className="font-medium mb-2">💡 Quick Fix:</p>
+                <ol className="list-decimal list-inside space-y-1 text-left">
+                  <li>Go to Settings and check your API token</li>
+                  <li>Visit <a href="https://platform.tavus.io" target="_blank" rel="noopener noreferrer" className="underline">platform.tavus.io</a> to verify your account</li>
+                  <li>Ensure your account has sufficient credits</li>
+                  <li>Generate a new API key if needed</li>
+                </ol>
+              </div>
+            </div>
+          )}
+          
           <div className="flex gap-4 justify-center">
-            {error.includes("API token") ? (
-              <Button onClick={handleGoToSettings} className="flex items-center space-x-2">
+            {isTokenError ? (
+              <Button onClick={handleGoToSettings} className="flex items-center space-x-2" variant="glow">
                 <Settings className="h-4 w-4" />
                 <span>Go to Settings</span>
               </Button>
             ) : (
-              <Button onClick={() => setScreenState({ currentScreen: "topicSelector" })}>
+              <Button onClick={handleRetry} variant="glow">
                 Try Again
               </Button>
             )}
+            <Button 
+              onClick={() => setScreenState({ currentScreen: "topicSelector" })} 
+              variant="outline"
+            >
+              Back to Topics
+            </Button>
           </div>
         </Card>
       </div>
