@@ -47,19 +47,19 @@ export const sessionDataAtom = atom<SessionData>({
 });
 export const journalEntryAtom = atom<JournalEntry | null>(null);
 
-// Updated therapist data with actual persona IDs
+// Updated therapist data with correct persona IDs
 export const therapists: Therapist[] = [
   {
-    id: 'dr-sarah',
-    name: 'Dr. Sarah Chen',
-    title: 'Licensed Clinical Psychologist',
-    specialty: 'CBT & Mindfulness',
-    specialties: ['Cognitive Behavioral Therapy', 'Mindfulness', 'Anxiety', 'Depression'],
-    description: 'Warm and empathetic approach combining CBT techniques with mindfulness practices for holistic healing.',
-    avatar: '👩‍⚕️',
-    personaId: 'pa166b1c9398',
-    experience: '10+ years',
-    approach: 'Cognitive Behavioral Therapy (CBT) & Mindfulness'
+    id: 'dr-elena',
+    name: 'Dr. Elena Rodriguez',
+    title: 'Licensed Marriage & Family Therapist',
+    specialty: 'Relationships & Family',
+    specialties: ['Couples Therapy', 'Family Therapy', 'Communication', 'Relationship Issues'],
+    description: 'Expert in relationship dynamics and family systems with a compassionate, solution-focused approach.',
+    avatar: '👩‍🏫',
+    personaId: 'p2fbd605',
+    experience: '8+ years',
+    approach: 'Emotionally Focused Therapy (EFT)'
   },
   {
     id: 'dr-marcus',
@@ -74,102 +74,6 @@ export const therapists: Therapist[] = [
     approach: 'EMDR & Trauma-Informed Care'
   },
   {
-    id: 'dr-elena',
-    name: 'Dr. Elena Rodriguez',
-    title: 'Licensed Marriage & Family Therapist',
-    specialty: 'Relationships & Family',
-    specialties: ['Couples Therapy', 'Family Therapy', 'Communication', 'Relationship Issues'],
-    description: 'Expert in relationship dynamics and family systems with a compassionate, solution-focused approach.',
-    avatar: '👩‍🏫',
-    personaId: 'p2fbd605',
-    experience: '8+ years',
-    approach: 'Emotionally Focused Therapy (EFT)'
-  },
-  {
-    id: 'dr-aisha',
-    name: 'Dr. Aisha Patel',
-    title: 'Holistic Wellness Therapist',
-    specialty: 'Holistic Wellness',
-    specialties: ['Holistic Therapy', 'Mind-Body Connection', 'Stress Management', 'Wellness Coaching'],
-    description: 'Integrative approach combining traditional therapy with holistic wellness practices for complete healing.',
-    avatar: '🧘‍♀️',
-    personaId: 'pa166b1c9398',
-    experience: '7+ years',
-    approach: 'Integrative Holistic Therapy'
-  },
-  {
-    id: 'kai',
-    name: 'Zen Master Kai',
-    title: 'Meditation & Mindfulness Guide',
-    specialty: 'Meditation & Zen',
-    specialties: ['Meditation', 'Zen Practice', 'Mindfulness', 'Spiritual Guidance'],
-    description: 'Ancient wisdom meets modern psychology through meditation and zen practices for inner peace.',
-    avatar: '🧘‍♂️',
-    personaId: 'pcd46460ac1a',
-    experience: '15+ years',
-    approach: 'Zen Meditation & Mindfulness'
-  },
-  {
-    id: 'alex',
-    name: 'Coach Alex Thunder',
-    title: 'Peak Performance Coach',
-    specialty: 'Peak Performance',
-    specialties: ['Performance Coaching', 'Goal Achievement', 'Motivation', 'Success Mindset'],
-    description: 'High-energy coaching focused on unlocking your potential and achieving peak performance in all areas.',
-    avatar: '💪',
-    personaId: 'p8feaa5df2e2',
-    experience: '6+ years',
-    approach: 'Performance Psychology & Coaching'
-  },
-  {
-    id: 'sophia',
-    name: 'Sophia Wisdom',
-    title: 'Life Transition Specialist',
-    specialty: 'Life Transitions',
-    specialties: ['Life Transitions', 'Career Changes', 'Personal Growth', 'Identity Development'],
-    description: 'Guiding individuals through major life changes with wisdom, support, and practical strategies.',
-    avatar: '🌟',
-    personaId: 'p8dd1938c1da',
-    experience: '9+ years',
-    approach: 'Narrative Therapy & Life Coaching'
-  },
-  {
-    id: 'james',
-    name: 'Dr. James Thompson',
-    title: 'Addiction Recovery Specialist',
-    specialty: 'Addiction Recovery',
-    specialties: ['Addiction Recovery', 'Substance Abuse', 'Behavioral Addictions', 'Relapse Prevention'],
-    description: 'Compassionate support for addiction recovery using evidence-based treatments and peer support.',
-    avatar: '🧑‍⚕️',
-    personaId: 'p1c4d77d9787',
-    experience: '11+ years',
-    approach: '12-Step & Cognitive Behavioral Therapy'
-  },
-  {
-    id: 'alex-kim',
-    name: 'Dr. Alex Kim',
-    title: 'LGBTQ+ Affirmative Therapist',
-    specialty: 'LGBTQ+ Affirmative',
-    specialties: ['LGBTQ+ Issues', 'Gender Identity', 'Sexual Orientation', 'Inclusive Therapy'],
-    description: 'Affirming and inclusive therapy for LGBTQ+ individuals and communities with cultural competency.',
-    avatar: '🏳️‍🌈',
-    personaId: 'pe4057ca48ba',
-    experience: '8+ years',
-    approach: 'Affirmative & Inclusive Therapy'
-  },
-  {
-    id: 'luna',
-    name: 'Luna Starweaver',
-    title: 'Art & Creative Therapist',
-    specialty: 'Art & Creative Therapy',
-    specialties: ['Art Therapy', 'Creative Expression', 'Expressive Arts', 'Creative Healing'],
-    description: 'Using creative arts and expression as powerful tools for healing, self-discovery, and growth.',
-    avatar: '🎨',
-    personaId: 'p8cbf28ba24c',
-    experience: '6+ years',
-    approach: 'Expressive Arts Therapy'
-  },
-  {
     id: 'victoria',
     name: 'Victoria Sterling',
     title: 'Career & Executive Coach',
@@ -180,6 +84,54 @@ export const therapists: Therapist[] = [
     personaId: 'p3bb4745d4f9',
     experience: '10+ years',
     approach: 'Strategic Career Coaching'
+  },
+  {
+    id: 'alex',
+    name: 'Coach Alex Thunder',
+    title: 'Peak Performance Coach',
+    specialty: 'Peak Performance',
+    specialties: ['Performance Coaching', 'Goal Achievement', 'Motivation', 'Success Mindset'],
+    description: 'High-energy coaching focused on unlocking your potential and achieving peak performance in all areas.',
+    avatar: '💪',
+    personaId: 'p48fdf065d6b',
+    experience: '6+ years',
+    approach: 'Performance Psychology & Coaching'
+  },
+  {
+    id: 'dr-aisha',
+    name: 'Dr. Aisha Patel',
+    title: 'Holistic Wellness Therapist',
+    specialty: 'Holistic Wellness',
+    specialties: ['Holistic Therapy', 'Mind-Body Connection', 'Stress Management', 'Wellness Coaching'],
+    description: 'Integrative approach combining traditional therapy with holistic wellness practices for complete healing.',
+    avatar: '🧘‍♀️',
+    personaId: 'p5d11710002a',
+    experience: '7+ years',
+    approach: 'Integrative Holistic Therapy'
+  },
+  {
+    id: 'sophia',
+    name: 'Sophia Wisdom',
+    title: 'Life Transition Specialist',
+    specialty: 'Life Transitions',
+    specialties: ['Life Transitions', 'Career Changes', 'Personal Growth', 'Identity Development'],
+    description: 'Guiding individuals through major life changes with wisdom, support, and practical strategies.',
+    avatar: '🌟',
+    personaId: 'pe13ed370726',
+    experience: '9+ years',
+    approach: 'Narrative Therapy & Life Coaching'
+  },
+  {
+    id: 'luna',
+    name: 'Luna Starweaver',
+    title: 'Art & Creative Therapist',
+    specialty: 'Art & Creative Therapy',
+    specialties: ['Art Therapy', 'Creative Expression', 'Expressive Arts', 'Creative Healing'],
+    description: 'Using creative arts and expression as powerful tools for healing, self-discovery, and growth.',
+    avatar: '🎨',
+    personaId: 'pdced222244b',
+    experience: '6+ years',
+    approach: 'Expressive Arts Therapy'
   }
 ];
 
