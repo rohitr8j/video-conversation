@@ -1,10 +1,9 @@
 import { atom } from "jotai";
 
 const getInitialToken = (): string | null => {
-  // Use the provided API key as default
-  const providedToken = "39b6de7eb0194fa696651b521a6c2ca4";
+  // Check for saved token in localStorage first
   const savedToken = localStorage.getItem('tavus-token');
-  return savedToken || providedToken;
+  return savedToken || null; // Remove the hardcoded invalid token
 };
 
 export const apiTokenAtom = atom<string | null>(getInitialToken());

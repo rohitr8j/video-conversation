@@ -24,7 +24,8 @@ import {
   VideoIcon, 
   VideoOffIcon, 
   PhoneIcon,
-  MessageCircle 
+  MessageCircle,
+  Settings
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -54,8 +55,13 @@ export const VideoChat = () => {
   // Initialize conversation
   useEffect(() => {
     const initializeConversation = async () => {
-      if (!selectedTherapist || !selectedTopic || !token) {
+      if (!selectedTherapist || !selectedTopic) {
         setError("Missing required information");
+        return;
+      }
+
+      if (!token) {
+        setError("API token is required. Please configure your Tavus API token in Settings.");
         return;
       }
 
@@ -84,7 +90,11 @@ export const VideoChat = () => {
         
       } catch (err) {
         console.error("Failed to create conversation:", err);
-        setError("Failed to start session. Please try again.");
+        if (err instanceof Error && err.message.includes('402')) {
+          setError("Invalid or expired API token. Please check your Tavus API token in Settings and ensure it has sufficient credits.");
+        } else {
+          setError("Failed to start session. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -149,6 +159,10 @@ export const VideoChat = () => {
     handleEndSession();
   }, [handleEndSession]);
 
+  const handleGoToSettings = () => {
+    setScreenState({ currentScreen: "settings" });
+  };
+
   if (error) {
     return (
       <div className="max-w-2xl mx-auto text-center space-y-6">
@@ -156,9 +170,18 @@ export const VideoChat = () => {
           <div className="text-4xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-red-600 mb-4">Session Error</h2>
           <p className="text-muted-foreground mb-6">{error}</p>
-          <Button onClick={() => setScreenState({ currentScreen: "topicSelector" })}>
-            Try Again
-          </Button>
+          <div className="flex gap-4 justify-center">
+            {error.includes("API token") ? (
+              <Button onClick={handleGoToSettings} className="flex items-center space-x-2">
+                <Settings className="h-4 w-4" />
+                <span>Go to Settings</span>
+              </Button>
+            ) : (
+              <Button onClick={() => setScreenState({ currentScreen: "topicSelector" })}>
+                Try Again
+              </Button>
+            )}
+          </div>
         </Card>
       </div>
     );
