@@ -1,8 +1,11 @@
 import { atom } from "jotai";
-import { IConversation } from "../types";
 
-const initialConversationState: IConversation | null = null;
+export interface IConversation {
+  conversation_id: string;
+  conversation_name: string;
+  status: string;
+  conversation_url: string;
+  created_at: string;
+}
 
-export const conversationAtom = atom<IConversation | null>(
-  initialConversationState,
-);
+export const conversationAtom = atom<IConversation | null>(null);

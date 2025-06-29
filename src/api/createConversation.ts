@@ -1,34 +1,16 @@
-import { IConversation } from "@/types";
-import { settingsAtom } from "@/store/settings";
-import { getDefaultStore } from "jotai";
+import { IConversation } from "@/store/conversation";
 
 export const createConversation = async (
   token: string,
+  personaId: string,
+  customGreeting?: string,
+  context?: string
 ): Promise<IConversation> => {
-  // Get settings from Jotai store
-  const settings = getDefaultStore().get(settingsAtom);
-  
-  // Add debug logs
-  console.log('Creating conversation with settings:', settings);
-  console.log('Greeting value:', settings.greeting);
-  console.log('Context value:', settings.context);
-  
-  // Build the context string
-  let contextString = "";
-  if (settings.name) {
-    contextString = `You are talking with the user, ${settings.name}. Additional context: `;
-  }
-  contextString += settings.context || "";
-  
   const payload = {
-    persona_id: settings.persona || "pd43ffef",
-    custom_greeting: settings.greeting !== undefined && settings.greeting !== null 
-      ? settings.greeting 
-      : "Hey there! I'm your technical co-pilot! Let's get get started building with Tavus.",
-    conversational_context: contextString
+    persona_id: personaId,
+    custom_greeting: customGreeting || "Hello! I'm here to provide you with a safe, supportive space to talk about whatever is on your mind. How are you feeling today?",
+    conversational_context: context || "You are a licensed therapist providing compassionate, professional mental health support. Listen actively, ask thoughtful questions, and provide evidence-based guidance while maintaining appropriate therapeutic boundaries."
   };
-  
-  console.log('Sending payload to API:', payload);
   
   const response = await fetch("https://tavusapi.com/v2/conversations", {
     method: "POST",

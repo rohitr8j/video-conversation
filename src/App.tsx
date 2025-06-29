@@ -2,14 +2,14 @@ import { useAtom } from "jotai";
 import { screenAtom } from "./store/screens";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
+import { ThemeProvider } from "./components/ThemeProvider";
 import {
-  IntroLoading,
-  Outage,
-  OutOfMinutes,
-  Intro,
-  Instructions,
-  Conversation,
-  FinalScreen,
+  Home,
+  AvatarSelector,
+  TopicSelector,
+  VideoChat,
+  Journal,
+  ThankYou,
   Settings,
 } from "./screens";
 
@@ -18,33 +18,37 @@ function App() {
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case "introLoading":
-        return <IntroLoading />;
-      case "outage":
-        return <Outage />;
-      case "outOfMinutes":
-        return <OutOfMinutes />;
-      case "intro":
-        return <Intro />;
+      case "home":
+        return <Home />;
+      case "avatarSelector":
+        return <AvatarSelector />;
+      case "topicSelector":
+        return <TopicSelector />;
+      case "videoChat":
+        return <VideoChat />;
+      case "journal":
+        return <Journal />;
+      case "thankYou":
+        return <ThankYou />;
       case "settings":
         return <Settings />;
-      case "instructions":
-        return <Instructions />;
-      case "conversation":
-        return <Conversation />;
-      case "finalScreen":
-        return <FinalScreen />;
       default:
-        return <IntroLoading />;
+        return <Home />;
     }
   };
 
   return (
-    <main className="flex h-svh flex-col items-center justify-between gap-3 p-5 sm:gap-4 lg:p-8 bg-black">
-      {currentScreen !== "introLoading" && <Header />}
-      {renderScreen()}
-      {currentScreen !== "introLoading" && <Footer />}
-    </main>
+    <ThemeProvider>
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-colors duration-500">
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <div className="flex-1 flex items-center justify-center p-4">
+            {renderScreen()}
+          </div>
+          <Footer />
+        </div>
+      </main>
+    </ThemeProvider>
   );
 }
 

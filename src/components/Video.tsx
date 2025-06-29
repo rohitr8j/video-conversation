@@ -14,7 +14,7 @@ export default function Video({
 
   return (
     <div
-      className={cn("bg-[rgba(248,250,252,0.08)]", className, {
+      className={cn("bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden", className, {
         "hidden size-0": videoState.isOff,
       })}
     >
