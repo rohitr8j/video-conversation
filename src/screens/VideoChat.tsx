@@ -66,6 +66,12 @@ export const VideoChat = () => {
         return;
       }
 
+      // Check if persona ID is still a placeholder
+      if (selectedTherapist.personaId.startsWith('REPLACE_WITH_YOUR_PERSONA_ID')) {
+        setError("Invalid persona ID: The selected therapist uses a placeholder persona ID. Please update the persona IDs in the therapist data with your actual persona IDs from your Tavus account. Visit https://platform.tavus.io to find your persona IDs, then update the personaId values in src/store/therapy.ts");
+        return;
+      }
+
       try {
         setIsLoading(true);
         
@@ -93,7 +99,7 @@ export const VideoChat = () => {
         console.error("Failed to create conversation:", err);
         if (err instanceof Error) {
           if (err.message.includes('400')) {
-            setError("Bad request: Please verify your Tavus API token is valid and that the selected therapist's persona ID is accessible with your account. The request parameters may be incorrect or your account may not have access to this persona.");
+            setError("Bad request: The persona ID for this therapist is invalid or not accessible with your Tavus account. Please verify that you've updated the persona IDs in src/store/therapy.ts with valid persona IDs from your Tavus account (visit https://platform.tavus.io), and ensure your API token has access to these personas.");
           } else if (err.message.includes('402')) {
             setError("Your Tavus API token is invalid, expired, or has insufficient credits. Please check your API token in Settings and ensure your Tavus account has available credits.");
           } else if (err.message.includes('401')) {
@@ -186,7 +192,8 @@ export const VideoChat = () => {
   };
 
   if (error) {
-    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("invalid") || error.includes("expired") || error.includes("credits") || error.includes("Bad request");
+    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("invalid") || error.includes("expired") || error.includes("credits");
+    const isPersonaError = error.includes("persona ID") || error.includes("Bad request");
     
     return (
       <div className="max-w-2xl mx-auto text-center space-y-6">
@@ -197,16 +204,25 @@ export const VideoChat = () => {
           <h2 className="text-2xl font-bold text-red-600 mb-4">Session Error</h2>
           <p className="text-muted-foreground mb-6 leading-relaxed">{error}</p>
           
-          {isTokenError && (
+          {(isTokenError || isPersonaError) && (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
               <div className="text-sm text-yellow-800 dark:text-yellow-200">
                 <p className="font-medium mb-2">💡 Quick Fix:</p>
-                <ol className="list-decimal list-inside space-y-1 text-left">
-                  <li>Go to Settings and check your API token</li>
-                  <li>Visit <a href="https://platform.tavus.io" target="_blank" rel="noopener noreferrer" className="underline">platform.tavus.io</a> to verify your account</li>
-                  <li>Ensure your account has sufficient credits</li>
-                  <li>Generate a new API key if needed</li>
-                </ol>
+                {isPersonaError ? (
+                  <ol className="list-decimal list-inside space-y-1 text-left">
+                    <li>Visit <a href="https://platform.tavus.io" target="_blank" rel="noopener noreferrer" className="underline">platform.tavus.io</a> and log in to your account</li>
+                    <li>Find your persona IDs in your Tavus dashboard</li>
+                    <li>Update the persona IDs in src/store/therapy.ts</li>
+                    <li>Replace all "REPLACE_WITH_YOUR_PERSONA_ID_X" placeholders with your actual persona IDs</li>
+                  </ol>
+                ) : (
+                  <ol className="list-decimal list-inside space-y-1 text-left">
+                    <li>Go to Settings and check your API token</li>
+                    <li>Visit <a href="https://platform.tavus.io" target="_blank" rel="noopener noreferrer" className="underline">platform.tavus.io</a> to verify your account</li>
+                    <li>Ensure your account has sufficient credits</li>
+                    <li>Generate a new API key if needed</li>
+                  </ol>
+                )}
               </div>
             </div>
           )}
