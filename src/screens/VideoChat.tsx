@@ -92,7 +92,9 @@ export const VideoChat = () => {
       } catch (err) {
         console.error("Failed to create conversation:", err);
         if (err instanceof Error) {
-          if (err.message.includes('402')) {
+          if (err.message.includes('400')) {
+            setError("Bad request: Please verify your Tavus API token is valid and that the selected therapist's persona ID is accessible with your account. The request parameters may be incorrect or your account may not have access to this persona.");
+          } else if (err.message.includes('402')) {
             setError("Your Tavus API token is invalid, expired, or has insufficient credits. Please check your API token in Settings and ensure your Tavus account has available credits.");
           } else if (err.message.includes('401')) {
             setError("Authentication failed. Please verify your Tavus API token in Settings.");
@@ -184,7 +186,7 @@ export const VideoChat = () => {
   };
 
   if (error) {
-    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("invalid") || error.includes("expired") || error.includes("credits");
+    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("invalid") || error.includes("expired") || error.includes("credits") || error.includes("Bad request");
     
     return (
       <div className="max-w-2xl mx-auto text-center space-y-6">
