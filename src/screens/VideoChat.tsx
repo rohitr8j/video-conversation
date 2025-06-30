@@ -91,11 +91,6 @@ export const VideoChat = () => {
           ? `Hello! I'm ${selectedTherapist.name}, and I'm here to help you with ${selectedTopic.name.toLowerCase()}. I understand you'd like to talk about ${selectedTopic.description.toLowerCase()}. This is a safe space for you to share whatever is on your mind. How are you feeling today?`
           : `Hello! I'm ${selectedTherapist.name}. I'm here to provide you with a safe, supportive space to talk about whatever is on your mind. How are you feeling today?`;
         
-        // Create context based on therapist and topic
-        const context = selectedTopic
-          ? `You are ${selectedTherapist.name}, a ${selectedTherapist.title} specializing in ${selectedTherapist.specialties.join(', ')}. Your approach is ${selectedTherapist.approach}. The client wants to discuss ${selectedTopic.name}: ${selectedTopic.description}. Provide compassionate, professional therapy while maintaining appropriate boundaries. Listen actively, ask thoughtful questions, and offer evidence-based guidance.`
-          : `You are ${selectedTherapist.name}, a ${selectedTherapist.title} specializing in ${selectedTherapist.specialties.join(', ')}. Your approach is ${selectedTherapist.approach}. Provide compassionate, professional therapy while maintaining appropriate boundaries. Listen actively, ask thoughtful questions, and offer evidence-based guidance.`;
-
         // Store debug info for error display
         setDebugInfo({
           therapistName: selectedTherapist.name,
@@ -108,8 +103,7 @@ export const VideoChat = () => {
         const newConversation = await createConversation(
           token,
           selectedTherapist.personaId,
-          topicGreeting,
-          context
+          topicGreeting
         );
         
         setConversation(newConversation);

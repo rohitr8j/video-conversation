@@ -7,8 +7,7 @@ export interface ConversationResponse {
 export async function createConversation(
   apiToken: string,
   personaId: string,
-  conversationName: string,
-  context?: string
+  conversationName: string
 ): Promise<ConversationResponse> {
   if (!apiToken) {
     throw new Error('API token is required');
@@ -25,14 +24,12 @@ export async function createConversation(
 
   const requestBody = {
     persona_id: personaId,
-    conversation_name: conversationName || 'Therapy Session',
-    ...(context && { context })
+    conversation_name: conversationName || 'Therapy Session'
   };
 
   console.log('Creating conversation with:', {
     persona_id: personaId,
     conversation_name: conversationName,
-    hasContext: !!context,
     tokenLength: apiToken.length
   });
 
