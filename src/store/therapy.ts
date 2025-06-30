@@ -47,6 +47,66 @@ export const sessionDataAtom = atom<SessionData>({
 });
 export const journalEntryAtom = atom<JournalEntry | null>(null);
 
+// Therapy topics data
+export const therapyTopics: TherapyTopic[] = [
+  {
+    id: 'anxiety',
+    name: 'Anxiety & Stress',
+    description: 'Managing anxiety, stress, and overwhelming feelings',
+    icon: '😰',
+    color: 'bg-blue-100 text-blue-800'
+  },
+  {
+    id: 'depression',
+    name: 'Depression & Mood',
+    description: 'Working through depression, low mood, and emotional challenges',
+    icon: '😔',
+    color: 'bg-purple-100 text-purple-800'
+  },
+  {
+    id: 'relationships',
+    name: 'Relationships',
+    description: 'Improving communication and relationship dynamics',
+    icon: '💕',
+    color: 'bg-pink-100 text-pink-800'
+  },
+  {
+    id: 'trauma',
+    name: 'Trauma & PTSD',
+    description: 'Healing from traumatic experiences and PTSD',
+    icon: '🛡️',
+    color: 'bg-red-100 text-red-800'
+  },
+  {
+    id: 'career',
+    name: 'Career & Work',
+    description: 'Professional development and work-life balance',
+    icon: '💼',
+    color: 'bg-green-100 text-green-800'
+  },
+  {
+    id: 'self-esteem',
+    name: 'Self-Esteem',
+    description: 'Building confidence and self-worth',
+    icon: '✨',
+    color: 'bg-yellow-100 text-yellow-800'
+  },
+  {
+    id: 'life-transitions',
+    name: 'Life Transitions',
+    description: 'Navigating major life changes and transitions',
+    icon: '🌟',
+    color: 'bg-indigo-100 text-indigo-800'
+  },
+  {
+    id: 'grief',
+    name: 'Grief & Loss',
+    description: 'Processing grief, loss, and bereavement',
+    icon: '🕊️',
+    color: 'bg-gray-100 text-gray-800'
+  }
+];
+
 // IMPORTANT: Replace these placeholder persona IDs with your actual persona IDs from your Tavus account
 // Visit https://platform.tavus.io to find your persona IDs
 // Each personaId should be replaced with a valid persona ID from your Tavus account
