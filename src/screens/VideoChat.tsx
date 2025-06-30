@@ -47,15 +47,15 @@ export const VideoChat = () => {
   const localSessionId = useLocalSessionId();
   const localVideo = useVideoTrack(localSessionId);
   const localAudio = useAudioTrack(localSessionId);
-  const isCameraEnabled = !localVideo.isOff;
-  const isMicEnabled = !localAudio.isOff;
+  const isCameraEnabled = localVideo && !localVideo.isOff;
+  const isMicEnabled = localAudio && !localAudio.isOff;
   const remoteParticipantIds = useParticipantIds({ filter: "remote" });
 
   // Initialize conversation
   useEffect(() => {
     const initializeConversation = async () => {
       if (!selectedTherapist || !selectedTopic || !token) {
-        setError("Missing required information");
+        setError("Missing required information. Please go back and select a therapist and topic.");
         return;
       }
 
@@ -84,14 +84,14 @@ export const VideoChat = () => {
         
       } catch (err) {
         console.error("Failed to create conversation:", err);
-        setError("Failed to start session. Please try again.");
+        setError("Failed to start session. Please check your API token and try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeConversation();
-  }, [selectedTherapist, selectedTopic, token]);
+  }, [selectedTherapist, selectedTopic, token, setConversation, setSessionData]);
 
   // Join Daily call when conversation is ready
   useEffect(() => {
@@ -103,23 +103,30 @@ export const VideoChat = () => {
       }).then(() => {
         daily.setLocalVideo(true);
         daily.setLocalAudio(false);
+      }).catch((error) => {
+        console.error("Failed to join Daily call:", error);
+        setError("Failed to connect to video call. Please try again.");
       });
     }
   }, [conversation?.conversation_url, daily]);
 
   // Enable audio when remote participant joins
   useEffect(() => {
-    if (remoteParticipantIds.length > 0) {
-      setTimeout(() => daily?.setLocalAudio(true), 2000);
+    if (remoteParticipantIds.length > 0 && daily) {
+      setTimeout(() => daily.setLocalAudio(true), 2000);
     }
   }, [remoteParticipantIds, daily]);
 
   const toggleVideo = useCallback(() => {
-    daily?.setLocalVideo(!isCameraEnabled);
+    if (daily) {
+      daily.setLocalVideo(!isCameraEnabled);
+    }
   }, [daily, isCameraEnabled]);
 
   const toggleAudio = useCallback(() => {
-    daily?.setLocalAudio(!isMicEnabled);
+    if (daily) {
+      daily.setLocalAudio(!isMicEnabled);
+    }
   }, [daily, isMicEnabled]);
 
   const handleEndSession = useCallback(async () => {
@@ -131,8 +138,10 @@ export const VideoChat = () => {
       }
     }
     
-    daily?.leave();
-    daily?.destroy();
+    if (daily) {
+      daily.leave();
+      daily.destroy();
+    }
     setConversation(null);
     
     // Update session data
@@ -143,11 +152,16 @@ export const VideoChat = () => {
     }));
     
     setScreenState({ currentScreen: "journal" });
-  }, [daily, conversation, token, setSessionData, setScreenState]);
+  }, [daily, conversation, token, setSessionData, setScreenState, setConversation]);
 
   const handleTimeUp = useCallback(() => {
     handleEndSession();
   }, [handleEndSession]);
+
+  const handleRetry = () => {
+    setError(null);
+    setScreenState({ currentScreen: "topicSelector" });
+  };
 
   if (error) {
     return (
@@ -156,9 +170,14 @@ export const VideoChat = () => {
           <div className="text-4xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-red-600 mb-4">Session Error</h2>
           <p className="text-muted-foreground mb-6">{error}</p>
-          <Button onClick={() => setScreenState({ currentScreen: "topicSelector" })}>
-            Try Again
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={handleRetry} variant="glow">
+              Try Again
+            </Button>
+            <Button onClick={() => setScreenState({ currentScreen: "home" })} variant="outline">
+              Go Home
+            </Button>
+          </div>
         </Card>
       </div>
     );

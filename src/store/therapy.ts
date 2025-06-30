@@ -46,7 +46,7 @@ export const sessionDataAtom = atom<SessionData>({
 });
 export const journalEntryAtom = atom<JournalEntry | null>(null);
 
-// Dummy data
+// Updated therapist data with actual Tavus persona IDs
 export const therapists: Therapist[] = [
   {
     id: "sarah",
@@ -55,7 +55,7 @@ export const therapists: Therapist[] = [
     specialties: ["Anxiety", "Depression", "Stress Management"],
     description: "Warm and empathetic approach with 10+ years of experience helping clients overcome anxiety and depression.",
     avatar: "👩‍⚕️",
-    personaId: "persona_sarah_123",
+    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
     experience: "10+ years",
     approach: "Cognitive Behavioral Therapy (CBT)"
   },
@@ -66,7 +66,7 @@ export const therapists: Therapist[] = [
     specialties: ["Relationships", "Family Therapy", "Communication"],
     description: "Specializes in relationship counseling and family dynamics with a solution-focused approach.",
     avatar: "👨‍⚕️",
-    personaId: "persona_marcus_456",
+    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
     experience: "8+ years",
     approach: "Solution-Focused Therapy"
   },
@@ -77,7 +77,7 @@ export const therapists: Therapist[] = [
     specialties: ["Trauma", "PTSD", "Grief Counseling"],
     description: "Compassionate trauma-informed care helping clients heal from difficult life experiences.",
     avatar: "👩‍💼",
-    personaId: "persona_elena_789",
+    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
     experience: "12+ years",
     approach: "EMDR & Trauma-Informed Care"
   },
@@ -88,7 +88,7 @@ export const therapists: Therapist[] = [
     specialties: ["Self-Esteem", "Life Transitions", "Mindfulness"],
     description: "Integrative approach combining mindfulness practices with traditional therapy techniques.",
     avatar: "👨‍💼",
-    personaId: "persona_david_012",
+    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
     experience: "6+ years",
     approach: "Mindfulness-Based Therapy"
   }

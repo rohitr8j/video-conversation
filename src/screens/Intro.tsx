@@ -13,7 +13,19 @@ export const Intro: React.FC = () => {
   const [token, setToken] = useAtom(apiTokenAtom);
 
   const handleClick = () => {
-    setScreenState({ currentScreen: "instructions" });
+    if (token && token.trim()) {
+      setScreenState({ currentScreen: "instructions" });
+    }
+  };
+
+  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newToken = e.target.value;
+    setToken(newToken);
+    if (newToken) {
+      localStorage.setItem('tavus-token', newToken);
+    } else {
+      localStorage.removeItem('tavus-token');
+    }
   };
 
   return (
@@ -33,7 +45,7 @@ export const Intro: React.FC = () => {
             fontFamily: 'Inter, sans-serif',
             background: 'rgba(0,0,0,0.3)'
           }}>
-          <img src="/public/images/vector.svg" alt="Logo" className="mt-2 mb-1" style={{ width: '40px', height: 'auto' }} />
+          <img src="/images/vector.svg" alt="Logo" className="mt-2 mb-1" style={{ width: '40px', height: 'auto' }} />
 
           <h1 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'Source Code Pro, monospace' }}>CVI Demo Playground</h1>
 
@@ -41,11 +53,7 @@ export const Intro: React.FC = () => {
             <Input
               type="password"
               value={token || ""}
-              onChange={(e) => {
-                const newToken = e.target.value;
-                setToken(newToken);
-                localStorage.setItem('tavus-token', newToken);
-              }}
+              onChange={handleTokenChange}
               placeholder="Enter Tavus API Key"
               className="w-64 bg-[rgba(255,255,255,0.1)] text-white rounded-3xl border border-[rgba(255,255,255,0.3)] px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
               style={{ 
@@ -70,14 +78,16 @@ export const Intro: React.FC = () => {
           <AudioButton 
             onClick={handleClick}
             className="relative z-20 flex items-center justify-center gap-2 rounded-3xl border border-[rgba(255,255,255,0.3)] px-4 py-2 text-sm text-white transition-all duration-200 hover:text-primary mt-4 disabled:opacity-50"
-            disabled={!token}
+            disabled={!token || !token.trim()}
             style={{
               height: '44px',
               transition: 'all 0.2s ease-in-out',
               backgroundColor: 'rgba(0,0,0,0.3)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 0 15px rgba(34, 197, 254, 0.5)';
+              if (token && token.trim()) {
+                e.currentTarget.style.boxShadow = '0 0 15px rgba(34, 197, 254, 0.5)';
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.boxShadow = 'none';
