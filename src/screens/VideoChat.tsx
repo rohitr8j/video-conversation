@@ -6,6 +6,16 @@ import { screenAtom } from "@/store/screens";
 import { selectedTherapistAtom, selectedTopicAtom, sessionDataAtom } from "@/store/therapy";
 import { conversationAtom } from "@/store/conversation";
 import { apiTokenAtom } from "@/store/tokens";
+import { 
+  sessionStateAtom, 
+  hasActiveSessionAtom, 
+  canCreateNewSessionAtom,
+  startSessionCreationAtom,
+  setActiveSessionAtom,
+  endActiveSessionAtom,
+  incrementRetryCountAtom,
+  resetSessionCreationAtom
+} from "@/store/session";
 import { createConversation } from "@/api/createConversation";
 import { endConversation } from "@/api/endConversation";
 import { Timer } from "@/components/Timer";
@@ -29,7 +39,9 @@ import {
   AlertTriangle,
   RefreshCw,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Clock,
+  Users
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -43,11 +55,21 @@ export const VideoChat = () => {
   const [selectedTopic] = useAtom(selectedTopicAtom);
   const [conversation, setConversation] = useAtom(conversationAtom);
   const [sessionData, setSessionData] = useAtom(sessionDataAtom);
+  const [sessionState, setSessionState] = useAtom(sessionStateAtom);
+  const [, startSessionCreation] = useAtom(startSessionCreationAtom);
+  const [, setActiveSession] = useAtom(setActiveSessionAtom);
+  const [, endActiveSession] = useAtom(endActiveSessionAtom);
+  const [, incrementRetryCount] = useAtom(incrementRetryCountAtom);
+  const [, resetSessionCreation] = useAtom(resetSessionCreationAtom);
+  
   const token = useAtomValue(apiTokenAtom);
+  const hasActiveSession = useAtomValue(hasActiveSessionAtom);
+  const canCreateNewSession = useAtomValue(canCreateNewSessionAtom);
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [retryTimeLeft, setRetryTimeLeft] = useState<number>(0);
   
   const daily = useDaily();
   const localSessionId = useLocalSessionId();
@@ -62,74 +84,179 @@ export const VideoChat = () => {
     return personaId && !personaId.startsWith('REPLACE_WITH_YOUR_PERSONA_ID') && !personaId.includes('REPLACE');
   };
 
-  // Initialize conversation
-  useEffect(() => {
-    const initializeConversation = async () => {
-      if (!selectedTherapist) {
-        setError("No therapist selected. Please go back and select a therapist.");
-        return;
-      }
+  // Check for concurrent error
+  const isConcurrentError = (errorMessage: string): boolean => {
+    return errorMessage.toLowerCase().includes('maximum concurrent conversations') || 
+           errorMessage.toLowerCase().includes('concurrent conversations') ||
+           errorMessage.toLowerCase().includes('reached maximum');
+  };
 
-      if (!token) {
-        setError("Missing Tavus API Token: Please configure your Tavus API token in Settings to start a therapy session.");
-        return;
-      }
-
-      // Validate persona ID
-      if (!validatePersonaId(selectedTherapist.personaId)) {
-        setError(`Missing Tavus Persona ID – Please update this therapist in the code. The therapist "${selectedTherapist.name}" has an invalid persona ID: "${selectedTherapist.personaId}". Update src/store/therapy.ts with your actual persona ID from https://platform.tavus.io`);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        setDebugInfo(null);
-        
-        // Create custom greeting based on selected topic
-        const topicGreeting = selectedTopic 
-          ? `Hello! I'm ${selectedTherapist.name}, and I'm here to help you with ${selectedTopic.name.toLowerCase()}. I understand you'd like to talk about ${selectedTopic.description.toLowerCase()}. This is a safe space for you to share whatever is on your mind. How are you feeling today?`
-          : `Hello! I'm ${selectedTherapist.name}. I'm here to provide you with a safe, supportive space to talk about whatever is on your mind. How are you feeling today?`;
-        
-        // Store debug info for error display
-        setDebugInfo({
-          therapistName: selectedTherapist.name,
-          personaId: selectedTherapist.personaId,
-          topicName: selectedTopic?.name,
-          tokenLength: token.length,
-          tokenPrefix: token.substring(0, 8) + '...',
-        });
-
-        const newConversation = await createConversation(
-          token,
-          selectedTherapist.personaId,
-          topicGreeting
-        );
-        
-        setConversation(newConversation);
-        setSessionData({
-          therapist: selectedTherapist,
-          topic: selectedTopic,
-          startTime: new Date(),
-          endTime: null,
-          duration: 0
-        });
-        
-      } catch (err) {
-        console.error("Failed to create conversation:", err);
-        
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Unknown Error: Failed to start session. Please try again.");
+  // Retry with exponential backoff
+  const scheduleRetry = useCallback((retryCount: number) => {
+    const baseDelay = 5000; // 5 seconds
+    const delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
+    const maxDelay = 30000; // Max 30 seconds
+    const actualDelay = Math.min(delay, maxDelay);
+    
+    setRetryTimeLeft(Math.ceil(actualDelay / 1000));
+    
+    const interval = setInterval(() => {
+      setRetryTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
         }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        return prev - 1;
+      });
+    }, 1000);
+    
+    setTimeout(() => {
+      clearInterval(interval);
+      setRetryTimeLeft(0);
+      initializeConversation(true); // Retry
+    }, actualDelay);
+  }, []);
 
+  // Initialize conversation with session management
+  const initializeConversation = useCallback(async (isRetry = false) => {
+    if (!selectedTherapist) {
+      setError("No therapist selected. Please go back and select a therapist.");
+      return;
+    }
+
+    if (!token) {
+      setError("Missing Tavus API Token: Please configure your Tavus API token in Settings to start a therapy session.");
+      return;
+    }
+
+    // Validate persona ID
+    if (!validatePersonaId(selectedTherapist.personaId)) {
+      setError(`Missing Tavus Persona ID – Please update this therapist in the code. The therapist "${selectedTherapist.name}" has an invalid persona ID: "${selectedTherapist.personaId}". Update src/store/therapy.ts with your actual persona ID from https://platform.tavus.io`);
+      return;
+    }
+
+    // Check if we can create a new session
+    if (!isRetry && !canCreateNewSession) {
+      if (hasActiveSession) {
+        setError("You already have an active session. Please end your current session before starting a new one.");
+        return;
+      }
+      
+      if (sessionState.isCreatingSession) {
+        setError("A session is already being created. Please wait...");
+        return;
+      }
+      
+      const timeSinceLastEnd = sessionState.lastSessionEndTime 
+        ? Date.now() - sessionState.lastSessionEndTime.getTime()
+        : Infinity;
+      
+      if (timeSinceLastEnd < 30000) {
+        const waitTime = Math.ceil((30000 - timeSinceLastEnd) / 1000);
+        setError(`Please wait ${waitTime} seconds before starting a new session.`);
+        setTimeout(() => initializeConversation(), waitTime * 1000);
+        return;
+      }
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setDebugInfo(null);
+      
+      // Start session creation
+      if (!isRetry) {
+        startSessionCreation({ 
+          personaId: selectedTherapist.personaId, 
+          therapistName: selectedTherapist.name 
+        });
+      }
+      
+      // Create custom greeting based on selected topic
+      const topicGreeting = selectedTopic 
+        ? `Hello! I'm ${selectedTherapist.name}, and I'm here to help you with ${selectedTopic.name.toLowerCase()}. I understand you'd like to talk about ${selectedTopic.description.toLowerCase()}. This is a safe space for you to share whatever is on your mind. How are you feeling today?`
+        : `Hello! I'm ${selectedTherapist.name}. I'm here to provide you with a safe, supportive space to talk about whatever is on your mind. How are you feeling today?`;
+      
+      const context = `You are ${selectedTherapist.name}, a ${selectedTherapist.title} specializing in ${selectedTherapist.specialties.join(', ')}. Your approach is ${selectedTherapist.approach}. ${selectedTopic ? `The client wants to discuss ${selectedTopic.name}: ${selectedTopic.description}.` : ''} Provide compassionate, professional therapy while maintaining appropriate boundaries. Listen actively, ask thoughtful questions, and offer evidence-based guidance.`;
+      
+      // Store debug info for error display
+      setDebugInfo({
+        therapistName: selectedTherapist.name,
+        personaId: selectedTherapist.personaId,
+        topicName: selectedTopic?.name,
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 8) + '...',
+        retryCount: sessionState.retryCount,
+        hasActiveSession,
+        canCreateNew: canCreateNewSession
+      });
+
+      const newConversation = await createConversation(
+        token,
+        selectedTherapist.personaId,
+        topicGreeting,
+        context
+      );
+      
+      // Set active session
+      setActiveSession({
+        conversationId: newConversation.conversation_id,
+        personaId: selectedTherapist.personaId,
+        therapistName: selectedTherapist.name,
+        startTime: new Date(),
+        status: 'active'
+      });
+      
+      setConversation(newConversation);
+      setSessionData({
+        therapist: selectedTherapist,
+        topic: selectedTopic,
+        startTime: new Date(),
+        endTime: null,
+        duration: 0
+      });
+      
+    } catch (err) {
+      console.error("Failed to create conversation:", err);
+      
+      if (err instanceof Error) {
+        const errorMessage = err.message;
+        
+        // Handle concurrent conversation errors with retry
+        if (isConcurrentError(errorMessage) && sessionState.retryCount < sessionState.maxRetries) {
+          incrementRetryCount();
+          scheduleRetry(sessionState.retryCount);
+          setError(`Maximum concurrent conversations reached. Retrying in a few seconds... (Attempt ${sessionState.retryCount + 1}/${sessionState.maxRetries})`);
+          return;
+        }
+        
+        setError(errorMessage);
+        resetSessionCreation();
+      } else {
+        setError("Unknown Error: Failed to start session. Please try again.");
+        resetSessionCreation();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    selectedTherapist, 
+    selectedTopic, 
+    token, 
+    canCreateNewSession, 
+    hasActiveSession, 
+    sessionState,
+    startSessionCreation,
+    setActiveSession,
+    incrementRetryCount,
+    resetSessionCreation,
+    scheduleRetry
+  ]);
+
+  // Initialize conversation on mount
+  useEffect(() => {
     initializeConversation();
-  }, [selectedTherapist, selectedTopic, token]);
+  }, [initializeConversation]);
 
   // Join Daily call when conversation is ready
   useEffect(() => {
@@ -171,6 +298,9 @@ export const VideoChat = () => {
     
     daily?.leave();
     daily?.destroy();
+    
+    // End active session
+    endActiveSession(conversation?.conversation_id);
     setConversation(null);
     
     // Update session data
@@ -181,7 +311,7 @@ export const VideoChat = () => {
     }));
     
     setScreenState({ currentScreen: "journal" });
-  }, [daily, conversation, token, setSessionData, setScreenState]);
+  }, [daily, conversation, token, endActiveSession, setSessionData, setScreenState]);
 
   const handleTimeUp = useCallback(() => {
     handleEndSession();
@@ -194,15 +324,19 @@ export const VideoChat = () => {
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
-    // Force re-initialization by clearing conversation
     setConversation(null);
+    resetSessionCreation();
+    initializeConversation();
   };
 
   const handleBackToTherapists = () => {
+    // Clean up any pending session creation
+    resetSessionCreation();
     setScreenState({ currentScreen: "avatarSelector" });
   };
 
   const handleBackToTopics = () => {
+    resetSessionCreation();
     setScreenState({ currentScreen: "topicSelector" });
   };
 
@@ -216,15 +350,30 @@ export const VideoChat = () => {
     const isCreditsError = error.includes("Credits") || error.includes("Payment") || error.includes("402");
     const isNetworkError = error.includes("Network") || error.includes("network");
     const isRateLimitError = error.includes("Rate") || error.includes("429");
-    const isConcurrentError = error.includes("maximum concurrent conversations") || error.includes("concurrent conversations");
+    const isConcurrentErrorDetected = isConcurrentError(error);
+    const isRetryInProgress = retryTimeLeft > 0;
     
     return (
       <div className="max-w-4xl mx-auto text-center space-y-6">
         <Card className="glass border-2 border-red-200 dark:border-red-800 p-8">
           <div className="text-4xl mb-4">
-            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
+            {isRetryInProgress ? (
+              <Clock className="h-16 w-16 text-yellow-500 mx-auto animate-spin" />
+            ) : (
+              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
+            )}
           </div>
-          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Session Error</h2>
+          
+          <h2 className="text-2xl font-bold mb-4">
+            {isRetryInProgress ? (
+              <span className="text-yellow-600 dark:text-yellow-400">
+                Retrying in {retryTimeLeft} seconds...
+              </span>
+            ) : (
+              <span className="text-red-600 dark:text-red-400">Session Error</span>
+            )}
+          </h2>
+          
           <div className="text-left bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border mb-6">
             <p className="text-muted-foreground leading-relaxed font-mono text-sm">
               {error}
@@ -264,6 +413,14 @@ export const VideoChat = () => {
                   <span>API Token:</span>
                   <span>{debugInfo.tokenPrefix} (length: {debugInfo.tokenLength})</span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <span>Retry Count:</span>
+                  <span>{debugInfo.retryCount}/{sessionState.maxRetries}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Has Active Session:</span>
+                  <span>{debugInfo.hasActiveSession ? 'Yes' : 'No'}</span>
+                </div>
               </div>
             </div>
           )}
@@ -276,9 +433,12 @@ export const VideoChat = () => {
                 <span>How to Fix This:</span>
               </p>
               
-              {isConcurrentError && (
+              {isConcurrentErrorDetected && (
                 <div className="text-left space-y-2">
-                  <p className="font-medium">Maximum Concurrent Conversations (400 Error):</p>
+                  <p className="font-medium flex items-center space-x-2">
+                    <Users className="h-4 w-4" />
+                    <span>Maximum Concurrent Conversations (400 Error):</span>
+                  </p>
                   <ol className="list-decimal list-inside space-y-1 ml-4">
                     <li>You have reached the maximum number of active conversations</li>
                     <li>Visit <a href="https://platform.tavus.io/conversations" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
@@ -287,12 +447,13 @@ export const VideoChat = () => {
                     </a> to view active sessions</li>
                     <li>End any existing conversations that are no longer needed</li>
                     <li>Wait for current conversations to naturally end</li>
+                    <li>The system will automatically retry with exponential backoff</li>
                     <li>Consider upgrading your plan for higher concurrent limits</li>
                   </ol>
                 </div>
               )}
               
-              {isPersonaError && !isConcurrentError && (
+              {isPersonaError && !isConcurrentErrorDetected && (
                 <div className="text-left space-y-2">
                   <p className="font-medium">Persona ID Issue (400/404 Error):</p>
                   <ol className="list-decimal list-inside space-y-1 ml-4">
@@ -369,7 +530,7 @@ export const VideoChat = () => {
               </Button>
             )}
             
-            {!isNetworkError && (
+            {!isNetworkError && !isRetryInProgress && (
               <Button onClick={handleRetry} className="flex items-center space-x-2" variant="outline">
                 <RefreshCw className="h-4 w-4" />
                 <span>Try Again</span>
@@ -414,6 +575,11 @@ export const VideoChat = () => {
               {selectedTopic && (
                 <p className="text-sm text-muted-foreground mt-2">
                   Topic: {selectedTopic.name}
+                </p>
+              )}
+              {sessionState.isCreatingSession && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Creating secure conversation...
                 </p>
               )}
             </div>

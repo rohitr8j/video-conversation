@@ -1,25 +1,34 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { screenAtom } from "@/store/screens";
 import { selectedTherapistAtom, therapists } from "@/store/therapy";
-import { ArrowLeft, Star, Award, Sparkles } from "lucide-react";
+import { hasActiveSessionAtom, canCreateNewSessionAtom } from "@/store/session";
+import { ArrowLeft, Star, Award, Sparkles, AlertTriangle } from "lucide-react";
 
 export const AvatarSelector = () => {
   const [, setScreenState] = useAtom(screenAtom);
   const [selectedTherapist, setSelectedTherapist] = useAtom(selectedTherapistAtom);
+  const hasActiveSession = useAtomValue(hasActiveSessionAtom);
+  const canCreateNewSession = useAtomValue(canCreateNewSessionAtom);
 
   const handleBack = () => {
     setScreenState({ currentScreen: "home" });
   };
 
   const handleSelectTherapist = (therapist: typeof therapists[0]) => {
+    if (!canCreateNewSession) {
+      return; // Prevent selection if can't create new session
+    }
     setSelectedTherapist(therapist);
     setScreenState({ currentScreen: "topicSelector" });
   };
 
   const handleStartSession = (therapist: typeof therapists[0]) => {
+    if (!canCreateNewSession) {
+      return; // Prevent session start if can't create new session
+    }
     setSelectedTherapist(therapist);
     // Skip topic selector and go directly to video chat
     setScreenState({ currentScreen: "videoChat" });
@@ -50,6 +59,25 @@ export const AvatarSelector = () => {
         <div className="w-20" /> {/* Spacer for centering */}
       </motion.div>
 
+      {/* Active Session Warning */}
+      {hasActiveSession && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                <p className="font-medium">Active Session Detected</p>
+                <p>You have an active therapy session. Please end your current session before starting a new one.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Therapist Grid */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -64,35 +92,45 @@ export const AvatarSelector = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 + index * 0.05 }}
             whileHover={{ 
-              scale: 1.03, 
-              y: -8,
+              scale: canCreateNewSession ? 1.03 : 1, 
+              y: canCreateNewSession ? -8 : 0,
               transition: { duration: 0.2 }
             }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: canCreateNewSession ? 0.98 : 1 }}
             className="group"
           >
             <Card 
-              className={`glass border-2 cursor-pointer transition-all duration-300 hover:shadow-2xl relative overflow-hidden ${
+              className={`glass border-2 transition-all duration-300 relative overflow-hidden ${
+                !canCreateNewSession 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'cursor-pointer hover:shadow-2xl hover:border-primary/50 hover:shadow-primary/20'
+              } ${
                 selectedTherapist?.id === therapist.id 
                   ? 'ring-2 ring-primary border-primary shadow-2xl' 
-                  : 'hover:border-primary/50 hover:shadow-primary/20'
+                  : ''
               }`}
-              onClick={() => handleSelectTherapist(therapist)}
+              onClick={() => canCreateNewSession && handleSelectTherapist(therapist)}
             >
               {/* Glowing background effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              {canCreateNewSession && (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              )}
               
               {/* Sparkle effect */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-              </div>
+              {canCreateNewSession && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                </div>
+              )}
 
               <CardHeader className="text-center pb-3 relative z-10">
                 <motion.div 
-                  className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300"
-                  animate={{ 
+                  className={`text-5xl mb-3 transition-transform duration-300 ${
+                    canCreateNewSession ? 'group-hover:scale-110' : ''
+                  }`}
+                  animate={canCreateNewSession ? { 
                     rotate: [0, 2, -2, 0],
-                  }}
+                  } : {}}
                   transition={{ 
                     duration: 4,
                     repeat: Infinity,
@@ -102,7 +140,9 @@ export const AvatarSelector = () => {
                   {therapist.avatar}
                 </motion.div>
                 
-                <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
+                <CardTitle className={`text-lg font-bold transition-colors ${
+                  canCreateNewSession ? 'group-hover:text-primary' : ''
+                }`}>
                   {therapist.name}
                 </CardTitle>
                 
@@ -152,24 +192,34 @@ export const AvatarSelector = () => {
                 
                 <div className="space-y-2">
                   <Button 
-                    className="w-full group-hover:shadow-lg transition-all duration-300" 
+                    className={`w-full transition-all duration-300 ${
+                      canCreateNewSession ? 'group-hover:shadow-lg' : ''
+                    }`}
                     variant="outline"
                     size="sm"
+                    disabled={!canCreateNewSession}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleSelectTherapist(therapist);
+                      if (canCreateNewSession) {
+                        handleSelectTherapist(therapist);
+                      }
                     }}
                   >
                     Select & Choose Topic
                   </Button>
                   
                   <Button 
-                    className="w-full group-hover:shadow-xl group-hover:shadow-primary/25 transition-all duration-300" 
+                    className={`w-full transition-all duration-300 ${
+                      canCreateNewSession ? 'group-hover:shadow-xl group-hover:shadow-primary/25' : ''
+                    }`}
                     variant="glow"
                     size="sm"
+                    disabled={!canCreateNewSession}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleStartSession(therapist);
+                      if (canCreateNewSession) {
+                        handleStartSession(therapist);
+                      }
                     }}
                   >
                     Start Session Now

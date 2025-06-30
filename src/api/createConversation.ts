@@ -1,15 +1,12 @@
-export interface ConversationResponse {
-  conversation_id: string;
-  conversation_url: string;
-  status: string;
-}
+import { IConversation } from "@/store/conversation";
 
-export async function createConversation(
-  apiToken: string,
+export const createConversation = async (
+  token: string,
   personaId: string,
-  conversationName: string
-): Promise<ConversationResponse> {
-  if (!apiToken) {
+  customGreeting?: string,
+  context?: string
+): Promise<IConversation> => {
+  if (!token) {
     throw new Error('API token is required');
   }
 
@@ -22,31 +19,33 @@ export async function createConversation(
     throw new Error(`Invalid persona ID: "${personaId}". Please update this with your actual Tavus persona ID from https://platform.tavus.io`);
   }
 
-  const requestBody = {
+  const payload = {
     persona_id: personaId,
-    conversation_name: conversationName || 'Therapy Session'
+    custom_greeting: customGreeting || "Hello! I'm here to provide you with a safe, supportive space to talk about whatever is on your mind. How are you feeling today?",
+    conversational_context: context || "You are a licensed therapist providing compassionate, professional mental health support. Listen actively, ask thoughtful questions, and provide evidence-based guidance while maintaining appropriate therapeutic boundaries."
   };
-
+  
   console.log('Creating conversation with:', {
     persona_id: personaId,
-    conversation_name: conversationName,
-    tokenLength: apiToken.length
+    tokenLength: token.length,
+    hasCustomGreeting: !!customGreeting,
+    hasContext: !!context
   });
 
   try {
-    const response = await fetch('https://tavusapi.com/v2/conversations', {
-      method: 'POST',
+    const response = await fetch("https://tavusapi.com/v2/conversations", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiToken,
+        "Content-Type": "application/json",
+        "x-api-key": token ?? "",
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(payload),
     });
 
     // Get response text first to handle both JSON and text responses
     const responseText = await response.text();
     
-    if (!response.ok) {
+    if (!response?.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
       
       try {
@@ -65,9 +64,17 @@ export async function createConversation(
         }
       }
 
-      // Add more specific error context based on status code
+      // Check for specific error types
+      const isConcurrentError = errorMessage.toLowerCase().includes('maximum concurrent conversations') || 
+                               errorMessage.toLowerCase().includes('concurrent conversations') ||
+                               errorMessage.toLowerCase().includes('reached maximum');
+
+      // Add more specific error context based on status code and content
       switch (response.status) {
         case 400:
+          if (isConcurrentError) {
+            throw new Error(`Bad Request (400): User has reached maximum concurrent conversations. Please check your persona ID "${personaId}" and ensure it exists in your Tavus account.`);
+          }
           throw new Error(`Bad Request (400): ${errorMessage}. Please check your persona ID "${personaId}" and ensure it exists in your Tavus account.`);
         case 401:
           throw new Error(`Unauthorized (401): ${errorMessage}. Please check your API token in Settings.`);
@@ -106,4 +113,4 @@ export async function createConversation(
     // Handle network errors
     throw new Error(`Network error: ${error}. Please check your internet connection.`);
   }
-}
+};
