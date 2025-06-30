@@ -27,7 +27,9 @@ import {
   MessageCircle,
   Settings,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,7 @@ export const VideoChat = () => {
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   const daily = useDaily();
   const localSessionId = useLocalSessionId();
@@ -56,7 +59,7 @@ export const VideoChat = () => {
 
   // Validate persona ID helper
   const validatePersonaId = (personaId: string): boolean => {
-    return personaId && !personaId.startsWith('REPLACE_WITH_YOUR_PERSONA_ID');
+    return personaId && !personaId.startsWith('REPLACE_WITH_YOUR_PERSONA_ID') && !personaId.includes('REPLACE');
   };
 
   // Initialize conversation
@@ -81,6 +84,7 @@ export const VideoChat = () => {
       try {
         setIsLoading(true);
         setError(null);
+        setDebugInfo(null);
         
         // Create custom greeting based on selected topic
         const topicGreeting = selectedTopic 
@@ -91,6 +95,15 @@ export const VideoChat = () => {
         const context = selectedTopic
           ? `You are ${selectedTherapist.name}, a ${selectedTherapist.title} specializing in ${selectedTherapist.specialties.join(', ')}. Your approach is ${selectedTherapist.approach}. The client wants to discuss ${selectedTopic.name}: ${selectedTopic.description}. Provide compassionate, professional therapy while maintaining appropriate boundaries. Listen actively, ask thoughtful questions, and offer evidence-based guidance.`
           : `You are ${selectedTherapist.name}, a ${selectedTherapist.title} specializing in ${selectedTherapist.specialties.join(', ')}. Your approach is ${selectedTherapist.approach}. Provide compassionate, professional therapy while maintaining appropriate boundaries. Listen actively, ask thoughtful questions, and offer evidence-based guidance.`;
+
+        // Store debug info for error display
+        setDebugInfo({
+          therapistName: selectedTherapist.name,
+          personaId: selectedTherapist.personaId,
+          topicName: selectedTopic?.name,
+          tokenLength: token.length,
+          tokenPrefix: token.substring(0, 8) + '...',
+        });
 
         const newConversation = await createConversation(
           token,
@@ -112,25 +125,7 @@ export const VideoChat = () => {
         console.error("Failed to create conversation:", err);
         
         if (err instanceof Error) {
-          const errorMessage = err.message.toLowerCase();
-          
-          if (errorMessage.includes('400') || errorMessage.includes('bad request')) {
-            setError(`Invalid Persona ID: The persona ID "${selectedTherapist.personaId}" for ${selectedTherapist.name} is not valid or accessible with your Tavus account. Please verify that this persona ID exists in your Tavus account at https://platform.tavus.io and that your API token has access to it.`);
-          } else if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
-            setError("Authentication Failed: Your Tavus API token is invalid or expired. Please update your API token in Settings.");
-          } else if (errorMessage.includes('402') || errorMessage.includes('payment')) {
-            setError("Insufficient Credits: Your Tavus account has insufficient credits or your subscription has expired. Please check your account at https://platform.tavus.io");
-          } else if (errorMessage.includes('403') || errorMessage.includes('forbidden')) {
-            setError("Access Denied: Your API token doesn't have permission to access this persona. Please check your token permissions in the Tavus platform.");
-          } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
-            setError("Rate Limit Exceeded: Too many requests. Please wait a moment and try again.");
-          } else if (errorMessage.includes('500') || errorMessage.includes('internal server')) {
-            setError("Tavus Service Error: The Tavus service is temporarily unavailable. Please try again in a few minutes.");
-          } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-            setError("Network Error: Please check your internet connection and try again.");
-          } else {
-            setError(`Session Error: ${err.message}`);
-          }
+          setError(err.message);
         } else {
           setError("Unknown Error: Failed to start session. Please try again.");
         }
@@ -217,55 +212,143 @@ export const VideoChat = () => {
     setScreenState({ currentScreen: "topicSelector" });
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
   if (error) {
-    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("Unauthorized") || error.includes("Credits");
-    const isPersonaError = error.includes("Persona ID") || error.includes("persona ID") || error.includes("Invalid Persona");
+    const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("Unauthorized") || error.includes("401");
+    const isPersonaError = error.includes("Persona ID") || error.includes("persona ID") || error.includes("Invalid Persona") || error.includes("400") || error.includes("404");
+    const isCreditsError = error.includes("Credits") || error.includes("Payment") || error.includes("402");
     const isNetworkError = error.includes("Network") || error.includes("network");
+    const isRateLimitError = error.includes("Rate") || error.includes("429");
     
     return (
-      <div className="max-w-3xl mx-auto text-center space-y-6">
+      <div className="max-w-4xl mx-auto text-center space-y-6">
         <Card className="glass border-2 border-red-200 dark:border-red-800 p-8">
           <div className="text-4xl mb-4">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
           </div>
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Session Error</h2>
-          <p className="text-muted-foreground mb-6 leading-relaxed text-left bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border">
-            {error}
-          </p>
+          <div className="text-left bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border mb-6">
+            <p className="text-muted-foreground leading-relaxed font-mono text-sm">
+              {error}
+            </p>
+          </div>
           
-          {(isTokenError || isPersonaError) && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
-              <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                <p className="font-medium mb-3 flex items-center justify-center space-x-2">
-                  <span>💡</span>
-                  <span>Quick Fix Guide:</span>
-                </p>
-                {isPersonaError ? (
-                  <div className="text-left space-y-2">
-                    <p className="font-medium">To fix persona ID issues:</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-4">
-                      <li>Visit <a href="https://platform.tavus.io" target="_blank" rel="noopener noreferrer" className="underline font-medium">platform.tavus.io</a> and log in</li>
-                      <li>Navigate to your Personas section</li>
-                      <li>Copy the correct persona ID for {selectedTherapist?.name}</li>
-                      <li>Update the personaId in src/store/therapy.ts</li>
-                      <li>Ensure your API token has access to this persona</li>
-                    </ol>
+          {/* Debug Information */}
+          {debugInfo && (
+            <div className="bg-gray-50 dark:bg-gray-900/20 border rounded-lg p-4 mb-6">
+              <h3 className="font-medium mb-3 text-left">Debug Information:</h3>
+              <div className="text-left space-y-2 text-sm font-mono">
+                <div className="flex justify-between items-center">
+                  <span>Therapist:</span>
+                  <span>{debugInfo.therapistName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Persona ID:</span>
+                  <div className="flex items-center space-x-2">
+                    <span>{debugInfo.personaId}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(debugInfo.personaId)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
                   </div>
-                ) : (
-                  <div className="text-left space-y-2">
-                    <p className="font-medium">To fix API token issues:</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-4">
-                      <li>Go to Settings and verify your API token</li>
-                      <li>Visit <a href="https://platform.tavus.io" target="_blank" rel="noopener noreferrer" className="underline font-medium">platform.tavus.io</a> to check your account</li>
-                      <li>Ensure your account has sufficient credits</li>
-                      <li>Generate a new API key if needed</li>
-                      <li>Verify token permissions for persona access</li>
-                    </ol>
+                </div>
+                {debugInfo.topicName && (
+                  <div className="flex justify-between items-center">
+                    <span>Topic:</span>
+                    <span>{debugInfo.topicName}</span>
                   </div>
                 )}
+                <div className="flex justify-between items-center">
+                  <span>API Token:</span>
+                  <span>{debugInfo.tokenPrefix} (length: {debugInfo.tokenLength})</span>
+                </div>
               </div>
             </div>
           )}
+          
+          {/* Solution Guide */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+            <div className="text-sm text-yellow-800 dark:text-yellow-200">
+              <p className="font-medium mb-3 flex items-center justify-center space-x-2">
+                <span>💡</span>
+                <span>How to Fix This:</span>
+              </p>
+              
+              {isPersonaError && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium">Persona ID Issue (400/404 Error):</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Visit <a href="https://platform.tavus.io/personas" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
+                      <span>platform.tavus.io/personas</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a></li>
+                    <li>Find or create a persona for {selectedTherapist?.name}</li>
+                    <li>Copy the correct persona ID</li>
+                    <li>Update the personaId in src/store/therapy.ts</li>
+                    <li>Ensure your API token has access to this persona</li>
+                  </ol>
+                </div>
+              )}
+              
+              {isTokenError && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium">API Token Issue (401 Error):</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Go to Settings and verify your API token</li>
+                    <li>Visit <a href="https://platform.tavus.io/api-keys" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
+                      <span>platform.tavus.io/api-keys</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a></li>
+                    <li>Generate a new API key if needed</li>
+                    <li>Ensure the token has conversation creation permissions</li>
+                  </ol>
+                </div>
+              )}
+              
+              {isCreditsError && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium">Credits/Payment Issue (402 Error):</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Visit <a href="https://platform.tavus.io/billing" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
+                      <span>platform.tavus.io/billing</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a></li>
+                    <li>Check your account balance and subscription status</li>
+                    <li>Add credits or upgrade your plan if needed</li>
+                  </ol>
+                </div>
+              )}
+              
+              {isRateLimitError && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium">Rate Limit Issue (429 Error):</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Wait a few minutes before trying again</li>
+                    <li>Check your API usage limits in the Tavus platform</li>
+                    <li>Consider upgrading your plan for higher limits</li>
+                  </ol>
+                </div>
+              )}
+              
+              {isNetworkError && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium">Network Issue:</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Check your internet connection</li>
+                    <li>Try refreshing the page</li>
+                    <li>Check if Tavus services are operational</li>
+                  </ol>
+                </div>
+              )}
+            </div>
+          </div>
           
           <div className="flex flex-wrap gap-3 justify-center">
             {isTokenError && (
@@ -291,20 +374,16 @@ export const VideoChat = () => {
                 Change Topic
               </Button>
             )}
+            
+            <Button 
+              onClick={() => window.open('https://platform.tavus.io', '_blank')} 
+              variant="outline"
+              className="flex items-center space-x-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span>Open Tavus Platform</span>
+            </Button>
           </div>
-          
-          {selectedTherapist && (
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                <strong>Selected Therapist:</strong> {selectedTherapist.name} (ID: {selectedTherapist.personaId})
-              </p>
-              {selectedTopic && (
-                <p className="text-sm text-muted-foreground">
-                  <strong>Selected Topic:</strong> {selectedTopic.name}
-                </p>
-              )}
-            </div>
-          )}
         </Card>
       </div>
     );
