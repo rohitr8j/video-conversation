@@ -107,7 +107,8 @@ export const therapyTopics: TherapyTopic[] = [
   }
 ];
 
-// Therapist avatars with your actual persona IDs
+// IMPORTANT: Replace these persona IDs with your actual persona IDs from your NEW Tavus account
+// Visit https://platform.tavus.io/personas to find your persona IDs
 export const therapists: Therapist[] = [
   {
     id: 'dr-sarah',
@@ -117,7 +118,7 @@ export const therapists: Therapist[] = [
     specialties: ['Anxiety Disorders', 'Depression', 'Cognitive Behavioral Therapy', 'Stress Management'],
     description: 'Warm and empathetic approach with expertise in anxiety and depression using evidence-based CBT techniques.',
     avatar: '👩‍⚕️',
-    personaId: 'p2fbd605',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_1', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '10+ years',
     approach: 'Cognitive Behavioral Therapy (CBT)'
   },
@@ -129,7 +130,7 @@ export const therapists: Therapist[] = [
     specialties: ['Trauma Therapy', 'EMDR', 'PTSD', 'Complex Trauma'],
     description: 'Specialized in trauma-informed care using EMDR and other evidence-based approaches for healing.',
     avatar: '👨‍⚕️',
-    personaId: 'p9a95912',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_2', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '12+ years',
     approach: 'EMDR & Trauma-Informed Care'
   },
@@ -141,7 +142,7 @@ export const therapists: Therapist[] = [
     specialties: ['Couples Therapy', 'Family Therapy', 'Communication', 'Relationship Issues'],
     description: 'Expert in relationship dynamics and family systems with a compassionate, solution-focused approach.',
     avatar: '👩‍🏫',
-    personaId: 'p3bb4745d4f9',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_3', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '8+ years',
     approach: 'Emotionally Focused Therapy (EFT)'
   },
@@ -153,7 +154,7 @@ export const therapists: Therapist[] = [
     specialties: ['Holistic Therapy', 'Mind-Body Connection', 'Stress Management', 'Wellness Coaching'],
     description: 'Integrative approach combining traditional therapy with holistic wellness practices for complete healing.',
     avatar: '🧘‍♀️',
-    personaId: 'p48fdf065d6b',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_4', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '7+ years',
     approach: 'Integrative Holistic Therapy'
   },
@@ -165,7 +166,7 @@ export const therapists: Therapist[] = [
     specialties: ['Mindfulness', 'Meditation', 'Stress Reduction', 'Inner Peace'],
     description: 'Ancient wisdom meets modern psychology. Guiding you to inner peace through mindfulness and meditation practices.',
     avatar: '🧘‍♂️',
-    personaId: 'p5d11710002a',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_5', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '15+ years',
     approach: 'Mindfulness-Based Stress Reduction'
   },
@@ -177,7 +178,7 @@ export const therapists: Therapist[] = [
     specialties: ['Performance Coaching', 'Goal Achievement', 'Motivation', 'Success Mindset'],
     description: 'High-energy coaching focused on unlocking your potential and achieving peak performance in all areas.',
     avatar: '💪',
-    personaId: 'pe13ed370726',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_6', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '6+ years',
     approach: 'Performance Psychology & Coaching'
   },
@@ -189,7 +190,7 @@ export const therapists: Therapist[] = [
     specialties: ['Life Transitions', 'Career Changes', 'Personal Growth', 'Identity Development'],
     description: 'Guiding individuals through major life changes with wisdom, support, and practical strategies.',
     avatar: '🌟',
-    personaId: 'pdced222244b',
+    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_7', // ⚠️ UPDATE THIS with your actual persona ID
     experience: '9+ years',
     approach: 'Narrative Therapy & Life Coaching'
   }
