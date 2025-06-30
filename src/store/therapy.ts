@@ -55,7 +55,7 @@ export const therapists: Therapist[] = [
     specialties: ["Anxiety", "Depression", "Stress Management"],
     description: "Warm and empathetic approach with 10+ years of experience helping clients overcome anxiety and depression.",
     avatar: "👩‍⚕️",
-    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
+    personaId: "", // REPLACE WITH YOUR ACTUAL TAVUS PERSONA ID
     experience: "10+ years",
     approach: "Cognitive Behavioral Therapy (CBT)"
   },
@@ -66,7 +66,7 @@ export const therapists: Therapist[] = [
     specialties: ["Relationships", "Family Therapy", "Communication"],
     description: "Specializes in relationship counseling and family dynamics with a solution-focused approach.",
     avatar: "👨‍⚕️",
-    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
+    personaId: "", // REPLACE WITH YOUR ACTUAL TAVUS PERSONA ID
     experience: "8+ years",
     approach: "Solution-Focused Therapy"
   },
@@ -77,7 +77,7 @@ export const therapists: Therapist[] = [
     specialties: ["Trauma", "PTSD", "Grief Counseling"],
     description: "Compassionate trauma-informed care helping clients heal from difficult life experiences.",
     avatar: "👩‍💼",
-    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
+    personaId: "", // REPLACE WITH YOUR ACTUAL TAVUS PERSONA ID
     experience: "12+ years",
     approach: "EMDR & Trauma-Informed Care"
   },
@@ -88,7 +88,7 @@ export const therapists: Therapist[] = [
     specialties: ["Self-Esteem", "Life Transitions", "Mindfulness"],
     description: "Integrative approach combining mindfulness practices with traditional therapy techniques.",
     avatar: "👨‍💼",
-    personaId: "p8c034c96", // Replace with your actual Tavus persona ID
+    personaId: "", // REPLACE WITH YOUR ACTUAL TAVUS PERSONA ID
     experience: "6+ years",
     approach: "Mindfulness-Based Therapy"
   }
