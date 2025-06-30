@@ -107,9 +107,7 @@ export const therapyTopics: TherapyTopic[] = [
   }
 ];
 
-// IMPORTANT: Replace these placeholder persona IDs with your actual persona IDs from your Tavus account
-// Visit https://platform.tavus.io to find your persona IDs
-// Each personaId should be replaced with a valid persona ID from your Tavus account
+// Therapist avatars - Replace empty persona_id values with your actual persona IDs from Tavus
 export const therapists: Therapist[] = [
   {
     id: 'dr-elena',
@@ -119,7 +117,7 @@ export const therapists: Therapist[] = [
     specialties: ['Couples Therapy', 'Family Therapy', 'Communication', 'Relationship Issues'],
     description: 'Expert in relationship dynamics and family systems with a compassionate, solution-focused approach.',
     avatar: '👩‍🏫',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_1',
+    personaId: '', // Replace with your actual persona ID
     experience: '8+ years',
     approach: 'Emotionally Focused Therapy (EFT)'
   },
@@ -131,7 +129,7 @@ export const therapists: Therapist[] = [
     specialties: ['Trauma Therapy', 'EMDR', 'PTSD', 'Complex Trauma'],
     description: 'Specialized in trauma-informed care using EMDR and other evidence-based approaches for healing.',
     avatar: '👨‍⚕️',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_2',
+    personaId: '', // Replace with your actual persona ID
     experience: '12+ years',
     approach: 'EMDR & Trauma-Informed Care'
   },
@@ -143,7 +141,7 @@ export const therapists: Therapist[] = [
     specialties: ['Career Development', 'Executive Coaching', 'Leadership', 'Professional Growth'],
     description: 'Strategic career coaching and executive development for professional success and fulfillment.',
     avatar: '👩‍💼',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_3',
+    personaId: '', // Replace with your actual persona ID
     experience: '10+ years',
     approach: 'Strategic Career Coaching'
   },
@@ -155,7 +153,7 @@ export const therapists: Therapist[] = [
     specialties: ['Performance Coaching', 'Goal Achievement', 'Motivation', 'Success Mindset'],
     description: 'High-energy coaching focused on unlocking your potential and achieving peak performance in all areas.',
     avatar: '💪',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_4',
+    personaId: '', // Replace with your actual persona ID
     experience: '6+ years',
     approach: 'Performance Psychology & Coaching'
   },
@@ -167,7 +165,7 @@ export const therapists: Therapist[] = [
     specialties: ['Holistic Therapy', 'Mind-Body Connection', 'Stress Management', 'Wellness Coaching'],
     description: 'Integrative approach combining traditional therapy with holistic wellness practices for complete healing.',
     avatar: '🧘‍♀️',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_5',
+    personaId: '', // Replace with your actual persona ID
     experience: '7+ years',
     approach: 'Integrative Holistic Therapy'
   },
@@ -179,7 +177,7 @@ export const therapists: Therapist[] = [
     specialties: ['Life Transitions', 'Career Changes', 'Personal Growth', 'Identity Development'],
     description: 'Guiding individuals through major life changes with wisdom, support, and practical strategies.',
     avatar: '🌟',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_6',
+    personaId: '', // Replace with your actual persona ID
     experience: '9+ years',
     approach: 'Narrative Therapy & Life Coaching'
   },
@@ -191,7 +189,7 @@ export const therapists: Therapist[] = [
     specialties: ['Art Therapy', 'Creative Expression', 'Expressive Arts', 'Creative Healing'],
     description: 'Using creative arts and expression as powerful tools for healing, self-discovery, and growth.',
     avatar: '🎨',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_7',
+    personaId: '', // Replace with your actual persona ID
     experience: '6+ years',
     approach: 'Expressive Arts Therapy'
   }
