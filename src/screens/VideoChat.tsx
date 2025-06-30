@@ -216,6 +216,7 @@ export const VideoChat = () => {
     const isCreditsError = error.includes("Credits") || error.includes("Payment") || error.includes("402");
     const isNetworkError = error.includes("Network") || error.includes("network");
     const isRateLimitError = error.includes("Rate") || error.includes("429");
+    const isConcurrentError = error.includes("maximum concurrent conversations") || error.includes("concurrent conversations");
     
     return (
       <div className="max-w-4xl mx-auto text-center space-y-6">
@@ -275,7 +276,23 @@ export const VideoChat = () => {
                 <span>How to Fix This:</span>
               </p>
               
-              {isPersonaError && (
+              {isConcurrentError && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium">Maximum Concurrent Conversations (400 Error):</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>You have reached the maximum number of active conversations</li>
+                    <li>Visit <a href="https://platform.tavus.io/conversations" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
+                      <span>platform.tavus.io/conversations</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a> to view active sessions</li>
+                    <li>End any existing conversations that are no longer needed</li>
+                    <li>Wait for current conversations to naturally end</li>
+                    <li>Consider upgrading your plan for higher concurrent limits</li>
+                  </ol>
+                </div>
+              )}
+              
+              {isPersonaError && !isConcurrentError && (
                 <div className="text-left space-y-2">
                   <p className="font-medium">Persona ID Issue (400/404 Error):</p>
                   <ol className="list-decimal list-inside space-y-1 ml-4">
