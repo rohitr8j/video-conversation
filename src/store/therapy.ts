@@ -10,7 +10,7 @@ export interface Therapist {
   personaId: string;
   experience: string;
   approach: string;
-  specialty: string; // Added for the new format
+  specialty: string;
 }
 
 export interface TherapyTopic {
@@ -107,9 +107,32 @@ export const therapyTopics: TherapyTopic[] = [
   }
 ];
 
-// Therapist avatars - IMPORTANT: Replace these persona IDs with your actual persona IDs from Tavus
-// Visit https://platform.tavus.io to find your persona IDs
+// Therapist avatars with your actual persona IDs
 export const therapists: Therapist[] = [
+  {
+    id: 'dr-sarah',
+    name: 'Dr. Sarah',
+    title: 'Licensed Clinical Psychologist',
+    specialty: 'Anxiety & Depression',
+    specialties: ['Anxiety Disorders', 'Depression', 'Cognitive Behavioral Therapy', 'Stress Management'],
+    description: 'Warm and empathetic approach with expertise in anxiety and depression using evidence-based CBT techniques.',
+    avatar: '👩‍⚕️',
+    personaId: 'p2fbd605',
+    experience: '10+ years',
+    approach: 'Cognitive Behavioral Therapy (CBT)'
+  },
+  {
+    id: 'dr-marcus',
+    name: 'Dr. Marcus',
+    title: 'Licensed Trauma Specialist',
+    specialty: 'Trauma & EMDR',
+    specialties: ['Trauma Therapy', 'EMDR', 'PTSD', 'Complex Trauma'],
+    description: 'Specialized in trauma-informed care using EMDR and other evidence-based approaches for healing.',
+    avatar: '👨‍⚕️',
+    personaId: 'p9a95912',
+    experience: '12+ years',
+    approach: 'EMDR & Trauma-Informed Care'
+  },
   {
     id: 'dr-elena',
     name: 'Dr. Elena Rodriguez',
@@ -118,45 +141,9 @@ export const therapists: Therapist[] = [
     specialties: ['Couples Therapy', 'Family Therapy', 'Communication', 'Relationship Issues'],
     description: 'Expert in relationship dynamics and family systems with a compassionate, solution-focused approach.',
     avatar: '👩‍🏫',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_1',
+    personaId: 'p3bb4745d4f9',
     experience: '8+ years',
     approach: 'Emotionally Focused Therapy (EFT)'
-  },
-  {
-    id: 'dr-marcus',
-    name: 'Dr. Marcus Williams',
-    title: 'Licensed Trauma Specialist',
-    specialty: 'Trauma & EMDR',
-    specialties: ['Trauma Therapy', 'EMDR', 'PTSD', 'Complex Trauma'],
-    description: 'Specialized in trauma-informed care using EMDR and other evidence-based approaches for healing.',
-    avatar: '👨‍⚕️',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_2',
-    experience: '12+ years',
-    approach: 'EMDR & Trauma-Informed Care'
-  },
-  {
-    id: 'victoria',
-    name: 'Victoria Sterling',
-    title: 'Career & Executive Coach',
-    specialty: 'Career Coaching',
-    specialties: ['Career Development', 'Executive Coaching', 'Leadership', 'Professional Growth'],
-    description: 'Strategic career coaching and executive development for professional success and fulfillment.',
-    avatar: '👩‍💼',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_3',
-    experience: '10+ years',
-    approach: 'Strategic Career Coaching'
-  },
-  {
-    id: 'alex',
-    name: 'Coach Alex Thunder',
-    title: 'Peak Performance Coach',
-    specialty: 'Peak Performance',
-    specialties: ['Performance Coaching', 'Goal Achievement', 'Motivation', 'Success Mindset'],
-    description: 'High-energy coaching focused on unlocking your potential and achieving peak performance in all areas.',
-    avatar: '💪',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_4',
-    experience: '6+ years',
-    approach: 'Performance Psychology & Coaching'
   },
   {
     id: 'dr-aisha',
@@ -166,32 +153,44 @@ export const therapists: Therapist[] = [
     specialties: ['Holistic Therapy', 'Mind-Body Connection', 'Stress Management', 'Wellness Coaching'],
     description: 'Integrative approach combining traditional therapy with holistic wellness practices for complete healing.',
     avatar: '🧘‍♀️',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_5',
+    personaId: 'p48fdf065d6b',
     experience: '7+ years',
     approach: 'Integrative Holistic Therapy'
   },
   {
-    id: 'sophia',
+    id: 'zen-master-kai',
+    name: 'Zen Master Kai',
+    title: 'Mindfulness & Meditation Guide',
+    specialty: 'Mindfulness & Meditation',
+    specialties: ['Mindfulness', 'Meditation', 'Stress Reduction', 'Inner Peace'],
+    description: 'Ancient wisdom meets modern psychology. Guiding you to inner peace through mindfulness and meditation practices.',
+    avatar: '🧘‍♂️',
+    personaId: 'p5d11710002a',
+    experience: '15+ years',
+    approach: 'Mindfulness-Based Stress Reduction'
+  },
+  {
+    id: 'coach-alex',
+    name: 'Coach Alex',
+    title: 'Peak Performance Coach',
+    specialty: 'Peak Performance',
+    specialties: ['Performance Coaching', 'Goal Achievement', 'Motivation', 'Success Mindset'],
+    description: 'High-energy coaching focused on unlocking your potential and achieving peak performance in all areas.',
+    avatar: '💪',
+    personaId: 'pe13ed370726',
+    experience: '6+ years',
+    approach: 'Performance Psychology & Coaching'
+  },
+  {
+    id: 'sophia-wisdom',
     name: 'Sophia Wisdom',
     title: 'Life Transition Specialist',
     specialty: 'Life Transitions',
     specialties: ['Life Transitions', 'Career Changes', 'Personal Growth', 'Identity Development'],
     description: 'Guiding individuals through major life changes with wisdom, support, and practical strategies.',
     avatar: '🌟',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_6',
+    personaId: 'pdced222244b',
     experience: '9+ years',
     approach: 'Narrative Therapy & Life Coaching'
-  },
-  {
-    id: 'luna',
-    name: 'Luna Starweaver',
-    title: 'Art & Creative Therapist',
-    specialty: 'Art & Creative Therapy',
-    specialties: ['Art Therapy', 'Creative Expression', 'Expressive Arts', 'Creative Healing'],
-    description: 'Using creative arts and expression as powerful tools for healing, self-discovery, and growth.',
-    avatar: '🎨',
-    personaId: 'REPLACE_WITH_YOUR_PERSONA_ID_7',
-    experience: '6+ years',
-    approach: 'Expressive Arts Therapy'
   }
 ];
