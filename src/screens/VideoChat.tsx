@@ -41,7 +41,8 @@ import {
   Copy,
   ExternalLink,
   Clock,
-  Users
+  Users,
+  CreditCard
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -89,6 +90,13 @@ export const VideoChat = () => {
     return errorMessage.toLowerCase().includes('maximum concurrent conversations') || 
            errorMessage.toLowerCase().includes('concurrent conversations') ||
            errorMessage.toLowerCase().includes('reached maximum');
+  };
+
+  // Check for credits error
+  const isCreditsError = (errorMessage: string): boolean => {
+    return errorMessage.toLowerCase().includes('credits') || 
+           errorMessage.toLowerCase().includes('payment required') ||
+           errorMessage.toLowerCase().includes('402');
   };
 
   // Retry with exponential backoff
@@ -222,6 +230,13 @@ export const VideoChat = () => {
       if (err instanceof Error) {
         const errorMessage = err.message;
         
+        // Handle credits errors - don't retry these
+        if (isCreditsError(errorMessage)) {
+          setError(errorMessage);
+          resetSessionCreation();
+          return;
+        }
+        
         // Handle concurrent conversation errors with retry
         if (isConcurrentError(errorMessage) && sessionState.retryCount < sessionState.maxRetries) {
           incrementRetryCount();
@@ -347,7 +362,7 @@ export const VideoChat = () => {
   if (error) {
     const isTokenError = error.includes("API token") || error.includes("Authentication") || error.includes("Unauthorized") || error.includes("401");
     const isPersonaError = error.includes("Persona ID") || error.includes("persona ID") || error.includes("Invalid Persona") || error.includes("400") || error.includes("404");
-    const isCreditsError = error.includes("Credits") || error.includes("Payment") || error.includes("402");
+    const isCreditsErrorDetected = isCreditsError(error);
     const isNetworkError = error.includes("Network") || error.includes("network");
     const isRateLimitError = error.includes("Rate") || error.includes("429");
     const isConcurrentErrorDetected = isConcurrentError(error);
@@ -359,6 +374,8 @@ export const VideoChat = () => {
           <div className="text-4xl mb-4">
             {isRetryInProgress ? (
               <Clock className="h-16 w-16 text-yellow-500 mx-auto animate-spin" />
+            ) : isCreditsErrorDetected ? (
+              <CreditCard className="h-16 w-16 text-orange-500 mx-auto" />
             ) : (
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
             )}
@@ -369,6 +386,8 @@ export const VideoChat = () => {
               <span className="text-yellow-600 dark:text-yellow-400">
                 Retrying in {retryTimeLeft} seconds...
               </span>
+            ) : isCreditsErrorDetected ? (
+              <span className="text-orange-600 dark:text-orange-400">Account Credits Required</span>
             ) : (
               <span className="text-red-600 dark:text-red-400">Session Error</span>
             )}
@@ -433,6 +452,25 @@ export const VideoChat = () => {
                 <span>How to Fix This:</span>
               </p>
               
+              {isCreditsErrorDetected && (
+                <div className="text-left space-y-2">
+                  <p className="font-medium flex items-center space-x-2">
+                    <CreditCard className="h-4 w-4" />
+                    <span>Account Credits Required (402 Error):</span>
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Your Tavus account is out of conversational credits</li>
+                    <li>Visit <a href="https://platform.tavus.io/billing" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
+                      <span>platform.tavus.io/billing</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a> to check your account balance</li>
+                    <li>Add more credits to your account or upgrade your plan</li>
+                    <li>Once credits are added, you can start a new session</li>
+                    <li>Consider setting up auto-recharge to avoid interruptions</li>
+                  </ol>
+                </div>
+              )}
+              
               {isConcurrentErrorDetected && (
                 <div className="text-left space-y-2">
                   <p className="font-medium flex items-center space-x-2">
@@ -453,7 +491,7 @@ export const VideoChat = () => {
                 </div>
               )}
               
-              {isPersonaError && !isConcurrentErrorDetected && (
+              {isPersonaError && !isConcurrentErrorDetected && !isCreditsErrorDetected && (
                 <div className="text-left space-y-2">
                   <p className="font-medium">Persona ID Issue (400/404 Error):</p>
                   <ol className="list-decimal list-inside space-y-1 ml-4">
@@ -484,20 +522,6 @@ export const VideoChat = () => {
                 </div>
               )}
               
-              {isCreditsError && (
-                <div className="text-left space-y-2">
-                  <p className="font-medium">Credits/Payment Issue (402 Error):</p>
-                  <ol className="list-decimal list-inside space-y-1 ml-4">
-                    <li>Visit <a href="https://platform.tavus.io/billing" target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center space-x-1">
-                      <span>platform.tavus.io/billing</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a></li>
-                    <li>Check your account balance and subscription status</li>
-                    <li>Add credits or upgrade your plan if needed</li>
-                  </ol>
-                </div>
-              )}
-              
               {isRateLimitError && (
                 <div className="text-left space-y-2">
                   <p className="font-medium">Rate Limit Issue (429 Error):</p>
@@ -523,6 +547,17 @@ export const VideoChat = () => {
           </div>
           
           <div className="flex flex-wrap gap-3 justify-center">
+            {isCreditsErrorDetected && (
+              <Button 
+                onClick={() => window.open('https://platform.tavus.io/billing', '_blank')} 
+                className="flex items-center space-x-2" 
+                variant="glow"
+              >
+                <CreditCard className="h-4 w-4" />
+                <span>Add Credits</span>
+              </Button>
+            )}
+            
             {isTokenError && (
               <Button onClick={handleGoToSettings} className="flex items-center space-x-2" variant="glow">
                 <Settings className="h-4 w-4" />
@@ -530,7 +565,7 @@ export const VideoChat = () => {
               </Button>
             )}
             
-            {!isNetworkError && !isRetryInProgress && (
+            {!isNetworkError && !isRetryInProgress && !isCreditsErrorDetected && (
               <Button onClick={handleRetry} className="flex items-center space-x-2" variant="outline">
                 <RefreshCw className="h-4 w-4" />
                 <span>Try Again</span>
